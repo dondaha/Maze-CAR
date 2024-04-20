@@ -6,6 +6,8 @@ import time
 class Controller:
     def __init__(self, ip : str, port : int) -> None:
         self.exit_flag = False
+        self.ip = ip
+        self.port = port
         # lock
         self.lock = threading.Lock()
         self.v1 = 0 # left front wheel
@@ -48,3 +50,21 @@ class Controller:
         cmd = "<0,0,0,0>"
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.sendto(cmd.encode(), (self.ip, self.port))
+
+
+if __name__ == '__main__':
+    controller = Controller("192.168.4.1", 12345)
+    controller.start()
+    while True:
+        # get the speed from the user with "v1,v1,v3,v4" format
+        try:
+            v1, v2, v3, v4 = map(int, input().split(","))
+            controller.set_speed(v1, v2, v3, v4)
+        except KeyboardInterrupt:
+            # If it's a keyboard interrupt, safely exit the controller
+            controller.stop()
+            print("Safely exited")
+            break
+        except Exception as e:
+            print("Error:", e)
+            continue
