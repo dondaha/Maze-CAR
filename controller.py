@@ -14,12 +14,22 @@ class Controller:
         self.v2 = 0 # left back wheel
         self.v3 = 0 # right front wheel
         self.v4 = 0 # right back wheel
+        self.x = 0
+        self.y = 0
+        self.theta = 0
+        self.target_x = 0
+        self.target_y = 0
     def set_speed(self, v1 : int, v2 : int, v3 : int, v4 : int) -> None:
         with self.lock:
             self.v1 = v1
             self.v2 = v2
             self.v3 = v3
             self.v4 = v4
+    def set_target(self, x : int, y : int) -> None:
+        with self.lock:
+            self.target_x = x
+            self.target_y = y
+    
     def stop(self) -> None:
         self.set_speed(0, 0, 0, 0)
         self.exit_flag = True

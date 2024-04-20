@@ -315,7 +315,7 @@ if __name__ == '__main__':
     map += " #    ## \n"
     map += " # ## ## \n"
     map += "    #    "
-    maze.set_start_end((0, 0), (8, 5))
+    maze.set_start_end((1, 1), (8, 5))
     maze.set_point_from_text(map)
     solution = maze.solve_path()
     print(maze)
