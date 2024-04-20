@@ -1,4 +1,5 @@
 from collections import deque
+import numpy as np
 
 
 class Directions:
@@ -148,6 +149,23 @@ class Maze:
         for y, line in enumerate(lines):
             for x, point in enumerate(line):
                 self.maze[y][x] = 1 if point == '#' else 0
+
+    def set_point_from_np_array(self, array):
+        """
+        Set the values of points in the maze from a numpy array.
+
+        Args:
+            array (np.array): Numpy array representation of the maze.
+            [[0 0 0 1 0 0 0 0 0]
+            [0 1 0 1 0 1 0 1 0]
+            [0 1 0 1 0 1 1 1 0]
+            [0 1 0 0 0 0 0 0 0]
+            [0 1 0 1 1 0 1 1 0]
+            [0 0 0 0 1 0 0 0 0]]
+        """
+        self.maze = array.tolist()
+        self.width = len(array[0])
+        self.height = len(array)
 
     def get_point(self, x: int, y: int):
         """
