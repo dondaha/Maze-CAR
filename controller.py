@@ -11,16 +11,16 @@ class Controller:
         self.port = port
         # lock
         self.lock = threading.Lock()
-        self.v1 = 0 # left front wheel
-        self.v2 = 0 # left back wheel
-        self.v3 = 0 # right front wheel
-        self.v4 = 0 # right back wheel
+        self.v1 = 0 # 左前
+        self.v2 = 0 # 右前
+        self.v3 = 0 # 左后
+        self.v4 = 0 # 右后
         self.x = 0
         self.y = 0
         self.theta = 0
         self.target_x = 0
         self.target_y = 0
-        self.speed = 80
+        self.speed = 70 # 小车的速度
     def set_position(self, x : int, y : int, theta : float) -> None:
         with self.lock:
             self.x = x

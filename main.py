@@ -6,6 +6,7 @@ import math
 
 
 if __name__ == '__main__':
+    # 初始化相机和控制器
     camera = Camera(0)
     camera.end = (6,1)
     camera.start()
@@ -28,19 +29,20 @@ if __name__ == '__main__':
             else:
                 continue
         if not first_flag:
+            # 第一次运行时，获取迷宫并求解路径
             maze = camera.get_maze()
             path = maze.solve_path()
             first_flag = True
             print(path)
-        target_x, target_y = tuple(i*100+50 for i in path.get_target())
+        target_x, target_y = tuple(i*100+50 for i in path.get_target()) # 将格点转化成像素坐标
         car_x, car_y = car["x"], car["y"]
         print(f"Car: ({car_x}, {car_y}), Target: ({target_x}, {target_y}), speed1: {controller.v1}, speed2: {controller.v2}, speed3: {controller.v3}, speed4: {controller.v4}")
-        if math.sqrt((car_x - target_x)**2 + (car_y - target_y)**2) < 10:
+        if math.sqrt((car_x - target_x)**2 + (car_y - target_y)**2) < 20: # 判断是否抵达格点的距离阈值
             target_x, target_y = tuple(i*100+50 for i in path.get_next_target())
-        if path.arrived():
+        if path.arrived(): # 判断是否到达终点
             controller.stop()
             camera.stop()
-            exit()
-        controller.set_position(car["x"], car["y"], car["theta"])
-        controller.set_target(target_x, target_y)
+            exit() # 结束程序
+        controller.set_position(car["x"], car["y"], car["theta"]) # 控制器更新小车位置
+        controller.set_target(target_x, target_y) # 控制器更新目标位置
         time.sleep(0.05)
