@@ -1,5 +1,6 @@
 import socket
 import threading
+import math
 import time
 
 
@@ -19,6 +20,12 @@ class Controller:
         self.theta = 0
         self.target_x = 0
         self.target_y = 0
+        self.speed = 80
+    def set_position(self, x : int, y : int, theta : float) -> None:
+        with self.lock:
+            self.x = x
+            self.y = y
+            self.theta = theta
     def set_speed(self, v1 : int, v2 : int, v3 : int, v4 : int) -> None:
         with self.lock:
             self.v1 = v1
@@ -29,7 +36,16 @@ class Controller:
         with self.lock:
             self.target_x = x
             self.target_y = y
-    
+            alpha = math.atan2(y - self.y, x - self.x)
+        beta = self.theta - alpha
+
+        cosValue = math.cos(beta)
+        sinValue = math.sin(beta)
+        speed1 = self.speed * cosValue - self.speed * sinValue; # 左前
+        speed2 = self.speed * cosValue + self.speed * sinValue; # 右前
+        speed3 = self.speed * cosValue + self.speed * sinValue; # 左后
+        speed4 = self.speed * cosValue - self.speed * sinValue; # 右后
+        self.set_speed(int(speed1), int(speed2), int(speed3), int(speed4))
     def stop(self) -> None:
         self.set_speed(0, 0, 0, 0)
         self.exit_flag = True
@@ -66,7 +82,7 @@ if __name__ == '__main__':
     controller = Controller("192.168.4.1", 12345)
     controller.start()
     while True:
-        # get the speed from the user with "v1,v1,v3,v4" format
+        # get the speed from the user with "v1,v2,v3,v4" format
         try:
             v1, v2, v3, v4 = map(int, input().split(","))
             controller.set_speed(v1, v2, v3, v4)

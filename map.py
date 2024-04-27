@@ -1,5 +1,6 @@
 from collections import deque
 import numpy as np
+import time
 
 
 class Directions:
@@ -31,7 +32,7 @@ class Path:
     """
     Class to represent a path in a maze.
     """
-    def __init__(self, path: list):
+    def __init__(self, path: list, start_point: tuple, end_point: tuple):
         """
         Initialize a Path object.
 
@@ -39,7 +40,42 @@ class Path:
             path (list): List of moves representing the path.
         """
         self.path = path
+        self.path_points = [start_point]
+        for p in self.path:
+            if p == Directions.NORTH:
+                self.path_points.append((self.path_points[-1][0], self.path_points[-1][1] - 1))
+            elif p == Directions.SOUTH:
+                self.path_points.append((self.path_points[-1][0], self.path_points[-1][1] + 1))
+            elif p == Directions.EAST:
+                self.path_points.append((self.path_points[-1][0] + 1, self.path_points[-1][1]))
+            elif p == Directions.WEST:
+                self.path_points.append((self.path_points[-1][0] - 1, self.path_points[-1][1]))
+            # 对于STOP，不添加新的点
         self.index = 0
+    def get_target(self):
+        """
+        Get the target position in the path.
+
+        Returns:
+            tuple: The target position in the path.
+        """
+        if self.index < len(self.path_points):
+            return self.path_points[self.index]
+        else:
+            return self.path_points[-1]
+    def get_next_target(self):
+        """
+        Get the next target position in the path.
+
+        Returns:
+            tuple: The next target position in the path.
+        """
+        if self.index < len(self.path_points):
+            point = self.path_points[self.index]
+            self.index += 1
+            return point
+        else:
+            return self.path_points[-1]
 
     def get_next_move(self):
         """
@@ -63,6 +99,9 @@ class Path:
             bool: True if there is a next move, False otherwise.
         """
         return self.index < len(self.path)
+    
+    def arrived(self):
+        return self.index == len(self.path_points)
 
     def __str__(self) -> str:
         """
@@ -82,7 +121,7 @@ class Path:
             elif move == Directions.WEST:
                 result += '←'
             else:
-                result += ' '
+                result += '<STOP>'
         return result
 
 
@@ -190,37 +229,8 @@ class Maze:
         start = self.start
         end = self.end
         path = self.bfs(start, end)
-        # path = self.dfs(start, end, visited)
-        return Path(path)
+        return Path(path, start, end)
 
-    def dfs(self, current, end):
-        """
-        Depth-first search algorithm to find a path in the maze.
-
-        Args:
-            current: Current position in the maze.
-            end: End position in the maze.
-            visited: Set of visited positions.
-
-        Returns:
-            list: List of moves representing the path.
-        """
-        visited = set()
-        if current == end:
-            return [Directions.STOP]
-
-        visited.add(current)
-
-        for direction in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            next_position = self.get_next_position(current, direction)
-
-            if next_position not in visited and self.is_valid_move(next_position):
-                path = self.dfs(next_position, end, visited)
-
-                if path:
-                    return [direction] + path
-
-        return []
 
     def bfs(self, start, end):
         """
@@ -309,14 +319,17 @@ class Maze:
 if __name__ == '__main__':
     maze = Maze(9, 6)
     map = ""
-    map += "   #     \n"
+    map += "    #    \n"
+    map += " ## ## # \n"
+    map += "       # \n"
+    map += " ### # # \n"
     map += " # # # # \n"
-    map += " # # ### \n"
-    map += " #    ## \n"
-    map += " # ## ## \n"
-    map += "    #    "
-    maze.set_start_end((1, 1), (8, 5))
+    map += "     #   "
+    maze.set_start_end((1, 1), (5, 0))
     maze.set_point_from_text(map)
+    start_time = time.time()
     solution = maze.solve_path()
+    end_time = time.time()
+    print(f"Time taken: {end_time - start_time:.6f} seconds")
     print(maze)
     print(solution)

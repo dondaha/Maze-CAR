@@ -5,6 +5,7 @@ import cv2.aruco as aruco
 from pathlib import Path
 from map import Maze
 import threading
+import time
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]
@@ -69,12 +70,23 @@ class Camera:
         self.show_raw = False # 相机畸变校正之后的图像
         self.show_result = False # 连通域分割之后的图像
         self.exit_flag = False
+        self.maze_init = False
         self.lock = threading.Lock()
+        self.car_lock = threading.Lock()
+        # 小车列表，数据格式：[{"id": 25, "x": 123, "y":456, "theta": 0.5}]
+        self.cars = []
         # 确定栅格大小
         self.num_rows = 6  # 纵向栅格数
         self.num_cols = 9  # 横向栅格数
         self.maze = Maze(9, 6)  # 创建迷宫对象
-        self.cars = [] # [{"id": 25, "x": 123, "y":456}]
+        self.end = (0,5)
+        self.map = ""
+        self.map += "## #     \n"
+        self.map += "## # # # \n"
+        self.map += "## # ### \n"
+        self.map += "##       \n"
+        self.map += "## ## ## \n"
+        self.map += "    #    "
         # 从param.json加载畸变校正参数
         with open(ROOT / 'param.json', 'r') as file:
             self.param = json.load(file)
@@ -91,7 +103,7 @@ class Camera:
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
         self.matrix = cv2.getPerspectiveTransform(
-            np.array([[534, 239], [172, 893], [1844, 899], [1489, 222]], dtype=np.float32),   # 透视变换前的四个点，左上\左下\右下\右上
+            np.array([[516, 294], [135, 882], [1706, 865], [1395, 297]], dtype=np.float32),   # 透视变换前的四个点，左上\左下\右下\右上
             np.array([[0, 0], [0, imagesize[1]], [imagesize[0], imagesize[1]], [imagesize[0], 0]], dtype=np.float32)
         )
 
@@ -104,6 +116,7 @@ class Camera:
         return self.maze
     def update(self) -> None:
         while True:
+            time0 = time.time()
             with self.lock:
                 if self.exit_flag:
                     break
@@ -112,49 +125,62 @@ class Camera:
                 break
             raw = cv2.remap(raw, self.map_x, self.map_y, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT) # 畸变校正
             if self.show_raw:
+                cv2.namedWindow('Raw', cv2.WINDOW_NORMAL)
+                cv2.setMouseCallback('Raw', mouse_callback)
                 raw_copy = raw.copy()
                 cv2.putText(
                 raw_copy, "x: %d,y: %d" % (mouse_x, mouse_y), (100, 100),
                 cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2
                 )
                 cv2.imshow('Raw', raw_copy)
-
+            
             frame = cv2.warpPerspective(raw, self.matrix, self.imagesize) # 透视变换
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # 转灰度图
-            blurred = cv2.GaussianBlur(gray, (5, 5), 0) # 高斯模糊
-            binary_image = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 12) # 自适应二值化
-            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))  # 定义一个3x3的矩形腐蚀核
-            eroded_image = cv2.erode(binary_image, kernel, iterations=2) # 腐蚀图像
-            # cv2.imshow('Eroded Image', eroded_image) # 显示腐蚀后的图像
-            # 定义两个阈值
-            threshold_low = 2400
-            threshold_high = 9000
-            # 进行连通域提取
-            num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(eroded_image, connectivity=8, ltype=cv2.CV_32S)
-            # 找到面积最大的连通域的索引        
-            max_area_index = np.argmax(stats[1:, cv2.CC_STAT_AREA]) + 1  # 从1开始索引，因为0是背景
-            result = np.zeros_like(labels, dtype=np.uint8) # 创建一个与原始图像大小相同的空白图像，并将其填充为黑色
-            result[labels == max_area_index] = 255 # 将面积最大的连通域在空白图像上填充为白色
-            # 显示结果
-            if self.show_result:
-                cv2.imshow('Separated Connected Components', result)
-            rasterized_result = rasterize_image(result, self.num_rows, self.num_cols,threshold_low,threshold_high)
-            # 迷宫更新
-            self.maze.set_point_from_np_array(rasterized_result)
+            if False:
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # 转灰度图
+                blurred = cv2.GaussianBlur(gray, (5, 5), 0) # 高斯模糊
+                binary_image = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 12) # 自适应二值化
+                kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))  # 定义一个3x3的矩形腐蚀核
+                eroded_image = cv2.erode(binary_image, kernel, iterations=2) # 腐蚀图像
+                # cv2.imshow('Eroded Image', eroded_image) # 显示腐蚀后的图像
+                # 定义两个阈值
+                threshold_low = 2400
+                threshold_high = 9000
+                # 进行连通域提取
+                num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(eroded_image, connectivity=8, ltype=cv2.CV_32S)
+                # 找到面积最大的连通域的索引        
+                max_area_index = np.argmax(stats[1:, cv2.CC_STAT_AREA]) + 1  # 从1开始索引，因为0是背景
+                result = np.zeros_like(labels, dtype=np.uint8) # 创建一个与原始图像大小相同的空白图像，并将其填充为黑色
+                result[labels == max_area_index] = 255 # 将面积最大的连通域在空白图像上填充为白色
+                # 显示结果
+                if self.show_result:
+                    cv2.imshow('Separated Connected Components', result)
+                rasterized_result = rasterize_image(result, self.num_rows, self.num_cols,threshold_low,threshold_high)
+                # 迷宫更新
+            
             # print(self.maze)
             # ArUco二维码检测
             corners, ids, rejectedImgPoints = self.detector.detectMarkers(frame)
             # 绘制检测到的标记
             aruco.drawDetectedMarkers(frame, corners, ids, (0, 0, 255))
             # 绘制每个标记的朝向
-            for corner, id in zip(corners, ids):
-                x, y, theta, sz = calc_pose(corner.squeeze())
-                self.cars.append({"id": id[0], "x": int(x), "y": int(y)})
-                cv2.arrowedLine(
-                    frame, (int(x), int(y)),
-                    (int(x + sz * np.cos(theta)), int(y + sz * np.sin(theta))),
-                    (0, 0, 255), 5, 8, 0, 0.25
-                )
+            with self.car_lock:
+                self.cars = []
+            if corners != ():
+                for corner, id in zip(corners, ids):
+                    x, y, theta, sz = calc_pose(corner.squeeze())
+                    with self.car_lock:
+                        self.cars.append({"id": id[0], "x": int(x), "y": int(y), "theta": theta})
+                    cv2.arrowedLine(
+                        frame, (int(x), int(y)),
+                        (int(x + sz * np.cos(theta)), int(y + sz * np.sin(theta))),
+                        (0, 0, 255), 5, 8, 0, 0.25
+                    )
+            with self.car_lock:
+                if not self.maze_init and len(self.cars) > 0:
+                    # 设置起点和终点
+                    self.maze.set_start_end((self.cars[0]["x"]//100, self.cars[0]["y"]//100), self.end)
+                    self.maze.set_point_from_text(self.map)
+                    self.maze_init = True
             if self.show_frame:
                 cv2.imshow('Frame', frame)
             key = cv2.waitKey(1)
@@ -180,5 +206,6 @@ class Camera:
 
 
 if __name__ == "__main__":
-    camera = Camera()
+    camera = Camera(0)
     camera.start()
+    camera.get_maze()
