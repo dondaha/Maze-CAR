@@ -99,6 +99,10 @@ class Camera:
         self.detector = aruco.ArucoDetector(ARUCO_DICT, ARUCO_PARAMETERS)  # ArUco检测器
 
         self.mouse_x, self.mouse_y = 0, 0
+    def get_cars(self) -> list:
+        # 小车列表，数据格式：[{"id": 25, "x": 123, "y":456, "theta": 0.5}]
+        with self.car_lock:
+            return self.cars
     def get_maze(self) -> Maze:
         return self.maze
     def update(self) -> None:

@@ -10,7 +10,7 @@ const char *ssid = "LAPTOP-DDH";
 const char *passwd = "ywtywtywt";
 const int port = 12345;
 
-const IPAddress ip_address(192, 168, 1, 200 + id);
+const IPAddress ip_address(192, 168, 137, 200 + id);
 const IPAddress gateway(192, 168, 1, 1);
 const IPAddress subnet(255, 255, 255, 0);
 

@@ -5,10 +5,11 @@ import time
 
 
 class Controller:
-    def __init__(self, ip : str, port : int) -> None:
+    def __init__(self, ip : str, port : int, id : int) -> None:
         self.exit_flag = False
         self.ip = ip
         self.port = port
+        self.id = id
         # lock
         self.lock = threading.Lock()
         self.v1 = 0 # 左前
@@ -79,7 +80,7 @@ class Controller:
 
 
 if __name__ == '__main__':
-    controller = Controller("192.168.4.1", 12345)
+    controller = Controller("192.168.1.225", 12345, 25)
     controller.start()
     while True:
         # get the speed from the user with "v1,v2,v3,v4" format
