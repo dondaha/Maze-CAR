@@ -12,8 +12,8 @@ if __name__ == '__main__':
     
     controller1 = Controller("192.168.4.225", 12345) # DDH的车
     controller2 = Controller("192.168.4.200", 12345) # LK的车
-    controller3 = Controller("192.168.4.221", 12345) # LHZ的车
-    controller4 = Controller("192.168.4.222", 12345) # JQH的车
+    controller3 = Controller("192.168.4.224", 12345) # LHZ的车
+    controller4 = Controller("192.168.4.235", 12345) # JQH的车
     controller1.start()
     controller2.start()
     controller3.start()
