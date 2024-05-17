@@ -123,7 +123,9 @@ class Camera:
                 ret, raw = self.cap.read()
             if not ret:
                 break
-            raw = cv2.remap(raw, self.map_x, self.map_y, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT) # 畸变校正
+            raw = cv2.remap(
+                raw, self.map_x, self.map_y, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT
+                ) # 畸变校正
             if self.show_raw:
                 cv2.namedWindow('Raw', cv2.WINDOW_NORMAL)
                 cv2.setMouseCallback('Raw', mouse_callback)
