@@ -5,10 +5,11 @@ import time
 
 
 class Controller:
-    def __init__(self, ip : str, port : int) -> None:
+    def __init__(self, ip : str, port : int, id : int) -> None:
         self.exit_flag = False
         self.ip = ip
         self.port = port
+        self.id = id
         # lock
         self.lock = threading.Lock()
         self.v1 = 0 # 左前
@@ -69,6 +70,7 @@ class Controller:
                 v4 = self.v4
             # send the speed to the robot
             cmd = f"<{v1},{v2},{v3},{v4}>"
+            # cmd = f"<{-v1},{-v2},{-v3},{-v4}>"
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 s.sendto(cmd.encode(), (self.ip, self.port))
             time.sleep(0.02) # 50Hz update rate
@@ -79,7 +81,7 @@ class Controller:
 
 
 if __name__ == '__main__':
-    controller = Controller("192.168.4.1", 12345)
+    controller = Controller("192.168.1.225", 12345, 25)
     controller.start()
     while True:
         # get the speed from the user with "v1,v2,v3,v4" format
