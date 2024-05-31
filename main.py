@@ -10,10 +10,10 @@ if __name__ == '__main__':
     camera = Camera(0)
     camera.start()
     
-    controller_25 = Controller("192.168.137.3", 12345, 25) # DDH的车
+    controller_25 = Controller("192.168.137.124", 12345, 25) # DDH的车
     # controller_22 = Controller("192.168.137.135", 12345, 22) # LK的车
-    controller_24 = Controller("192.168.137.180", 12345, 24) # LHZ的车
-    controller_35 = Controller("192.168.137.243", 12345, 35) # JQH的车
+    controller_24 = Controller("192.168.137.227", 12345, 24) # LHZ的车
+    controller_35 = Controller("192.168.137.56", 12345, 35) # JQH的车
     controllers = [controller_25, controller_24, controller_35]
     for controller in controllers:
         controller.start()
@@ -50,9 +50,9 @@ if __name__ == '__main__':
             # 设置目标位置
             target_x = car_x
             target_y = car_y
-            if(distance > 100):
-                target_x = car_x + x
-                target_y = car_y + y
+            # if(distance > 100):
+            target_x = car_x + x
+            target_y = car_y + y
             controller = None
             for c in controllers:
                 if c.id == car["id"]:

@@ -46,6 +46,12 @@ class Controller:
         speed2 = self.speed * cosValue + self.speed * sinValue; # 右前
         speed3 = self.speed * cosValue + self.speed * sinValue; # 左后
         speed4 = self.speed * cosValue - self.speed * sinValue; # 右后
+        # 距离小于150速度置零
+        if math.sqrt((x - self.x) * (x - self.x) + (y - self.y) * (y - self.y)) < 150:
+            speed1 = 0
+            speed2 = 0
+            speed3 = 0
+            speed4 = 0
         self.set_speed(int(speed1), int(speed2), int(speed3), int(speed4))
     def stop(self) -> None:
         self.set_speed(0, 0, 0, 0)
