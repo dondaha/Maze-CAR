@@ -10,10 +10,10 @@ if __name__ == '__main__':
     camera = Camera(0)
     camera.start()
     
-    controller_25 = Controller("192.168.137.72", 12345, 25) # DDH的车
+    controller_25 = Controller("192.168.137.3", 12345, 25) # DDH的车
     # controller_22 = Controller("192.168.137.135", 12345, 22) # LK的车
-    controller_24 = Controller("192.168.137.223", 12345, 24) # LHZ的车
-    controller_35 = Controller("192.168.137.136", 12345, 35) # JQH的车
+    controller_24 = Controller("192.168.137.180", 12345, 24) # LHZ的车
+    controller_35 = Controller("192.168.137.243", 12345, 35) # JQH的车
     controllers = [controller_25, controller_24, controller_35]
     for controller in controllers:
         controller.start()
@@ -59,14 +59,14 @@ if __name__ == '__main__':
                     controller = c
                     break
             if controller is not None:
+                controller.set_position(car_x, car_y, car["theta"])
                 controller.set_target(target_x, target_y)
-
                 # 绘制小车的位置和目标方向
                 ax.plot(car_x, car_y, 'bo')  # 小车的位置
                 ax.plot([car_x, target_x], [car_y, target_y], 'r-')  # 小车的目标方向
 
                 print(f"Car {controller.id} position: ({car_x}, {car_y})")
-                print(f"Car {controller.id} target: ({x}, {y})")
+                print(f"Car {controller.id} target: ({target_x}, {target_y})")
 
         # 更新图形
         plt.pause(0.05)
