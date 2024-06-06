@@ -20,22 +20,40 @@ if __name__ == '__main__':
     # 等待初始化
     time.sleep(2)
     
-    #创建一个以controller_id为邻居的有向拓扑图
-    # 25->24->35->25
+    #创建一个以controller_id为邻居的无向切换拓扑图
+    #25->24/35
     controller_25.add_neighbor(controller_24)
+    controller_25.add_neighbor(controller_35)
+    #24->35/25
     controller_24.add_neighbor(controller_35)
+    controller_24.add_neighbor(controller_25)
+    #35->25/24
     controller_35.add_neighbor(controller_25)
+    controller_35.add_neighbor(controller_24)
 
     # 创建一个新的图形和子图
     fig, ax = plt.subplots()
     
+    #创建计时参数
+    start_time = time.time()
     
+    neighbor_num = 0
+    
+    # 开始循环
     while True:
         # 获取小车的位置
         cars = camera.get_cars()
 
         # 清除子图
         ax.clear()
+        
+        #获得当前时间
+        current_time = time.time()
+        #计算时间差
+        time_diff = current_time - start_time
+        #如果时间差大于2.5s，重新规划路径
+        if time_diff > 2.5:
+            neighbor_num = (neighbor_num + 1) % 2   
 
         for car in cars:
             controller = None
@@ -51,7 +69,7 @@ if __name__ == '__main__':
                 y = 0
                 nerghbors = controller.get_neighbors()
                 for other_car in cars:
-                    if other_car["id"] == nerghbors[0].id:
+                    if other_car["id"] == nerghbors[neighbor_num].id:
                         x = other_car["x"]
                         y = other_car["y"]
                 # 设置目标位置
