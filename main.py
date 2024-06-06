@@ -19,10 +19,17 @@ if __name__ == '__main__':
         controller.start()
     # 等待初始化
     time.sleep(2)
+    
+    #创建一个以controller_id为邻居的有向拓扑图
+    # 25->24->35->25
+    controller_25.add_neighbor(controller_24)
+    controller_24.add_neighbor(controller_35)
+    controller_35.add_neighbor(controller_25)
 
     # 创建一个新的图形和子图
     fig, ax = plt.subplots()
-
+    
+    
     while True:
         # 获取小车的位置
         cars = camera.get_cars()
@@ -31,42 +38,30 @@ if __name__ == '__main__':
         ax.clear()
 
         for car in cars:
-            # 求出所有其他车的平均位置
-            car_x = car["x"]
-            car_y = car["y"]
-            x = 0
-            y = 0
-            count = 0
-            for other_car in cars:
-                if other_car["id"] != car["id"]:
-                    x += (other_car["x"]-car_x)
-                    y += (other_car["y"]-car_y)
-                    count += 1
-            if count == 0:
-                continue
-            x /= count
-            y /= count
-            distance = math.sqrt(x*x + y*y)
-            # 设置目标位置
-            target_x = car_x
-            target_y = car_y
-            # if(distance > 100):
-            target_x = car_x + x
-            target_y = car_y + y
             controller = None
             for c in controllers:
                 if c.id == car["id"]:
                     controller = c
                     break
             if controller is not None:
+                # 寻找目标位置
+                car_x = car["x"]
+                car_y = car["y"]
+                x = 0
+                y = 0
+                nerghbors = controller.get_neighbors()
+                for other_car in cars:
+                    if other_car["id"] == nerghbors[0].id:
+                        x = other_car["x"]
+                        y = other_car["y"]
+                # 设置目标位置
+                target_x = car_x + x
+                target_y = car_y + y
                 controller.set_position(car_x, car_y, car["theta"])
                 controller.set_target(target_x, target_y)
                 # 绘制小车的位置和目标方向
                 ax.plot(car_x, car_y, 'bo')  # 小车的位置
                 ax.plot([car_x, target_x], [car_y, target_y], 'r-')  # 小车的目标方向
-
-                print(f"Car {controller.id} position: ({car_x}, {car_y})")
-                print(f"Car {controller.id} target: ({target_x}, {target_y})")
 
         # 更新图形
         plt.pause(0.05)

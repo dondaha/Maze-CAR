@@ -10,6 +10,9 @@ class Controller:
         self.ip = ip
         self.port = port
         self.id = id
+        # neighbors
+        self.neighbors = []
+        self.target_id = None
         # lock
         self.lock = threading.Lock()
         self.v1 = 0 # 左前
@@ -22,6 +25,11 @@ class Controller:
         self.target_x = 0
         self.target_y = 0
         self.speed = 70 # 小车的速度
+    
+    def add_neighbor(self, neighbor) -> None:
+        self.neighbors.append(neighbor)
+    def get_neighbors(self) -> list:
+        return self.neighbors
     def set_position(self, x : int, y : int, theta : float) -> None:
         with self.lock:
             self.x = x
