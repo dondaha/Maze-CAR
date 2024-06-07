@@ -70,8 +70,8 @@ if __name__ == '__main__':
                 nerghbors = controller.get_neighbors()
                 for other_car in cars:
                     if other_car["id"] == nerghbors[neighbor_num].id:
-                        x = other_car["x"]
-                        y = other_car["y"]
+                        x = other_car["x"] - car_x
+                        y = other_car["y"] - car_y
                 # 设置目标位置
                 target_x = car_x + x
                 target_y = car_y + y
